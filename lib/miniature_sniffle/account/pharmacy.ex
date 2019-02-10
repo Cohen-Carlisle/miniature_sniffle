@@ -2,10 +2,8 @@ defmodule MiniatureSniffle.Account.Pharmacy do
   use Ecto.Schema
   import Ecto.Changeset
 
-
   schema "pharmacies" do
     field :name, :string
-
     timestamps()
   end
 

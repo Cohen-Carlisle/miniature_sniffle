@@ -3,11 +3,9 @@ defmodule MiniatureSniffle.Repo.Migrations.CreatePharmacies do
 
   def change do
     create table(:pharmacies) do
-      add :name, :string
-
+      add :name, :string, null: false
       timestamps()
     end
-
     create unique_index(:pharmacies, [:name])
   end
 end
