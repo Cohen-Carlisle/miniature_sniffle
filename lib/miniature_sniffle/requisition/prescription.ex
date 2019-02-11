@@ -2,10 +2,8 @@ defmodule MiniatureSniffle.Requisition.Prescription do
   use Ecto.Schema
   import Ecto.Changeset
 
-
   schema "prescriptions" do
     field :name, :string
-
     timestamps()
   end
 
