@@ -3,11 +3,9 @@ defmodule MiniatureSniffle.Repo.Migrations.CreatePatients do
 
   def change do
     create table(:patients) do
-      add :first_name, :string
-      add :last_name, :string
-
+      add :first_name, :string, null: false
+      add :last_name, :string, null: false
       timestamps()
     end
-
   end
 end
