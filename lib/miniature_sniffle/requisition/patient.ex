@@ -1,6 +1,7 @@
 defmodule MiniatureSniffle.Requisition.Patient do
   use Ecto.Schema
   import Ecto.Changeset
+  alias MiniatureSniffle.Requisition
 
   # allows duplicate patients because deduplicating people is hard
 
@@ -8,6 +9,7 @@ defmodule MiniatureSniffle.Requisition.Patient do
     field :first_name, :string
     field :last_name, :string
     timestamps()
+    has_many :orders, Requisition.Order
   end
 
   @doc false

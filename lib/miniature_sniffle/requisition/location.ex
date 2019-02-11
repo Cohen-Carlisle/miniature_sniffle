@@ -1,7 +1,7 @@
 defmodule MiniatureSniffle.Requisition.Location do
   use Ecto.Schema
   import Ecto.Changeset
-  alias MiniatureSniffle.Account
+  alias MiniatureSniffle.{Account, Requisition}
 
   # latitude and longitude as strings is not ideal
 
@@ -10,6 +10,7 @@ defmodule MiniatureSniffle.Requisition.Location do
     field :longitude, :string
     belongs_to :pharmacy, Account.Pharmacy
     timestamps()
+    has_many :orders, Requisition.Order
   end
 
   @doc false
