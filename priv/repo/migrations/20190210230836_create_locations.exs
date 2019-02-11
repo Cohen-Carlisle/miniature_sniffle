@@ -8,7 +8,11 @@ defmodule MiniatureSniffle.Repo.Migrations.CreateLocations do
       add :pharmacy_id, references(:pharmacies, on_delete: :nothing), null: false
       timestamps()
     end
+
     create index(:locations, [:pharmacy_id])
-    create unique_index(:locations, [:latitude, :longitude, :pharmacy_id], name: :locations_latitude_longitude_pharmacy_id_index)
+
+    create unique_index(:locations, [:latitude, :longitude, :pharmacy_id],
+             name: :locations_latitude_longitude_pharmacy_id_index
+           )
   end
 end

@@ -8,6 +8,7 @@ defmodule MiniatureSniffle.Repo.Migrations.CreateOrders do
       add :prescription_id, references(:prescriptions, on_delete: :nothing), null: false
       timestamps()
     end
+
     create index(:orders, [:location_id])
     create index(:orders, [:patient_id])
     create index(:orders, [:prescription_id])

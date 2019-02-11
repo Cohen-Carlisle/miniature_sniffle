@@ -24,11 +24,19 @@ pharmacy2 =
   |> Repo.insert!()
 
 %Requisition.Location{}
-|> Requisition.Location.changeset(%{latitude: "39.9612", longitude: "82.9988", pharmacy_id: pharmacy1.id})
+|> Requisition.Location.changeset(%{
+  latitude: "39.9612",
+  longitude: "82.9988",
+  pharmacy_id: pharmacy1.id
+})
 |> Repo.insert!()
 
 %Requisition.Location{}
-|> Requisition.Location.changeset(%{latitude: "40.9612", longitude: "72.9988", pharmacy_id: pharmacy2.id})
+|> Requisition.Location.changeset(%{
+  latitude: "40.9612",
+  longitude: "72.9988",
+  pharmacy_id: pharmacy2.id
+})
 |> Repo.insert!()
 
 %Requisition.Patient{}

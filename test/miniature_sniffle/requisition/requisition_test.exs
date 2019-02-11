@@ -13,7 +13,11 @@ defmodule MiniatureSniffle.RequisitionTest do
 
       location =
         %Requisition.Location{}
-        |> Requisition.Location.changeset(%{latitude: "1", longitude: "1", pharmacy_id: pharmacy.id})
+        |> Requisition.Location.changeset(%{
+          latitude: "1",
+          longitude: "1",
+          pharmacy_id: pharmacy.id
+        })
         |> Repo.insert!()
 
       patient =

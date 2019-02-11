@@ -7,8 +7,7 @@ defmodule MiniatureSniffleWeb.AccountController do
   end
 
   def login(conn, %{"pharmacy_name" => pharmacy_name}) do
-    with {:ok, pharmacy} <- Account.get_pharmacy(pharmacy_name)
-    do
+    with {:ok, pharmacy} <- Account.get_pharmacy(pharmacy_name) do
       conn
       |> put_flash(:info, "Welcome to MiniatureSniffle, #{pharmacy.name}.")
       |> render("index.html")

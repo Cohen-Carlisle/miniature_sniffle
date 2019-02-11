@@ -6,6 +6,7 @@ defmodule MiniatureSniffle.Repo.Migrations.CreatePharmacies do
       add :name, :string, null: false
       timestamps()
     end
+
     create unique_index(:pharmacies, [:name])
   end
 end
