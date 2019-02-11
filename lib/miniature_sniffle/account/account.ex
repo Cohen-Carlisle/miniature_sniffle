@@ -14,13 +14,17 @@ defmodule MiniatureSniffle.Account do
   ## Examples
 
       iex> get_pharmacy("Alfa Pharmacy")
-      %Pharmacy{name: "Alfa Pharmacy"}
+      {:ok, %Pharmacy{name: "Alfa Pharmacy"}}
 
       iex> get_pharmacy("Zooloo Pharmacy")
-      nil
+      {:error, :pharmacy_not_found}
 
   """
   def get_pharmacy(name) do
-    Repo.get_by(Pharmacy, name: name)
+    result = Repo.get_by(Pharmacy, name: name)
+    case result do
+      %Pharmacy{} -> {:ok, result}
+      nil -> {:error, :pharmacy_not_found}
+    end
   end
 end

@@ -17,6 +17,8 @@ defmodule MiniatureSniffleWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
+    get "/comeonin", AccountController, :index
+    post "/comeonin", AccountController, :login
   end
 
   # Other scopes may use custom stacks.
