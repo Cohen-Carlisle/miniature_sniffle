@@ -11,7 +11,9 @@ defmodule MiniatureSniffle.Repo.Migrations.CreateLocations do
 
     create index(:locations, [:pharmacy_id])
 
-    create unique_index(:locations, [:latitude, :longitude, :pharmacy_id],
+    create unique_index(
+             :locations,
+             [:latitude, :longitude, :pharmacy_id],
              name: :locations_latitude_longitude_pharmacy_id_index
            )
   end

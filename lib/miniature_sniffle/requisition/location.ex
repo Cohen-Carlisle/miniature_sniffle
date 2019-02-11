@@ -19,7 +19,8 @@ defmodule MiniatureSniffle.Requisition.Location do
     |> cast(attrs, [:latitude, :longitude, :pharmacy_id])
     |> validate_required([:latitude, :longitude, :pharmacy_id])
     |> assoc_constraint(:pharmacy)
-    |> unique_constraint(:latitude_and_longitude,
+    |> unique_constraint(
+      :latitude_and_longitude,
       name: :locations_latitude_longitude_pharmacy_id_index
     )
   end
