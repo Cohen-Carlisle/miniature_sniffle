@@ -1,4 +1,5 @@
 <%= form_for @conn, Routes.account_path(@conn, :login), fn f -> %>
-  <%= text_input f, :pharmacy_name %>
-  <%= submit "Login" %>
+  <%= label(f, :pharmacy_name, "Pharmacy Name") %>
+  <%= text_input(f, :pharmacy_name) %>
+  <%= submit("Login") %>
 <% end %>

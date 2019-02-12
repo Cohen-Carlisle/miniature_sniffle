@@ -21,10 +21,8 @@ defmodule MiniatureSniffle.Account do
 
   """
   def get_pharmacy(name) do
-    result = Repo.get_by(Pharmacy, name: name)
-
-    case result do
-      %Pharmacy{} -> {:ok, result}
+    case Repo.get_by(Pharmacy, name: name) do
+      %Pharmacy{} = pharmacy -> {:ok, pharmacy}
       nil -> {:error, :pharmacy_not_found}
     end
   end

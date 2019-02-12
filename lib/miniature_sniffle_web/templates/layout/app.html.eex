@@ -4,7 +4,7 @@
     <meta charset="utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>MiniatureSniffle · Phoenix Framework</title>
+    <title>MiniatureSniffle · Powered by Phoenix</title>
     <link rel="stylesheet" href="<%= Routes.static_path(@conn, "/css/app.css") %>"/>
   </head>
   <body>
@@ -12,7 +12,9 @@
       <section class="container">
         <nav role="navigation">
           <ul>
-            <li><a href="https://hexdocs.pm/phoenix/overview.html">Get Started</a></li>
+            <%= if @conn.assigns.current_user do %>
+              <li><%= link("Log out", to: Routes.account_path(@conn, :logout)) %></li>
+            <% end %>
           </ul>
         </nav>
         <a href="http://phoenixframework.org/" class="phx-logo">

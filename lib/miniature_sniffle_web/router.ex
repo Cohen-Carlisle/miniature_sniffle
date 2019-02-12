@@ -7,10 +7,14 @@ defmodule MiniatureSniffleWeb.Router do
     plug :fetch_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :assign_current_user
   end
 
-  pipeline :api do
-    plug :accepts, ["json"]
+  scope "/user/", MiniatureSniffleWeb do
+    pipe_through [:browser, :authenticate]
+
+    get "/create_order", OrderController, :new
+    post "/create_order", OrderController, :create
   end
 
   scope "/", MiniatureSniffleWeb do
@@ -19,10 +23,26 @@ defmodule MiniatureSniffleWeb.Router do
     get "/", PageController, :index
     get "/comeonin", AccountController, :index
     post "/comeonin", AccountController, :login
+    get "/logout", AccountController, :logout
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", MiniatureSniffleWeb do
-  #   pipe_through :api
-  # end
+  defp assign_current_user(conn, _options) do
+    # allow assigns to be set up and preserved for unit tests
+    if Mix.env() == :test and Map.has_key?(conn.assigns, :current_user) do
+      conn
+    else
+      assign(conn, :current_user, get_session(conn, :current_user))
+    end
+  end
+
+  defp authenticate(conn, _options) do
+    if conn.assigns.current_user do
+      conn
+    else
+      conn
+      |> put_flash(:error, "You must be logged in to view that page.")
+      |> redirect(to: "/comeonin")
+      |> halt()
+    end
+  end
 end

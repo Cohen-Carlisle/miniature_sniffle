@@ -2,6 +2,6 @@ defmodule MiniatureSniffleWeb.PageController do
   use MiniatureSniffleWeb, :controller
 
   def index(conn, _params) do
-    render(conn, "index.html")
+    redirect(conn, to: Routes.account_path(conn, :index))
   end
 end
