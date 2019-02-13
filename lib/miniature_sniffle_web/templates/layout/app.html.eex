@@ -12,7 +12,7 @@
       <section class="container">
         <nav role="navigation">
           <ul>
-            <%= if @conn.assigns.current_user do %>
+            <%= if @conn.assigns.user do %>
               <li><%= link("Log out", to: Routes.account_path(@conn, :logout)) %></li>
             <% end %>
           </ul>

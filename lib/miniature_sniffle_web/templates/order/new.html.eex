@@ -1,1 +1,17 @@
-You made it to `lib/miniature_sniffle_web/templates/order/new.html`
+<h1>Create Order</h1>
+<%= form_for @cs, Routes.order_path(@conn, :create), fn f -> %>
+  <%= label(f, :location_id, "Location") %>
+  <%= error_tag f, :location %>
+  <%= error_tag f, :location_id %>
+  <%= select(f, :location_id, @select_options.locations, required: true) %>
+  <%= label(f, :patient_id, "Patient") %>
+  <%= error_tag f, :patient %>
+  <%= error_tag f, :patient_id %>
+  <%= select(f, :patient_id, @select_options.patients, required: true) %>
+  <%= label(f, :prescription_id, "Prescription") %>
+  <%= error_tag f, :prescription %>
+  <%= error_tag f, :prescription_id %>
+  <%= select(f, :prescription_id, @select_options.prescriptions, required: true) %>
+  <br/>
+  <%= submit("Submit") %>
+<% end %>

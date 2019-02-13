@@ -7,7 +7,7 @@ defmodule MiniatureSniffleWeb.Router do
     plug :fetch_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug :assign_current_user
+    plug :assign_user
   end
 
   scope "/user/", MiniatureSniffleWeb do
@@ -26,17 +26,17 @@ defmodule MiniatureSniffleWeb.Router do
     get "/logout", AccountController, :logout
   end
 
-  defp assign_current_user(conn, _options) do
+  defp assign_user(conn, _options) do
     # allow assigns to be set up and preserved for unit tests
-    if Mix.env() == :test and Map.has_key?(conn.assigns, :current_user) do
+    if Mix.env() == :test and Map.has_key?(conn.assigns, :user) do
       conn
     else
-      assign(conn, :current_user, get_session(conn, :current_user))
+      assign(conn, :user, get_session(conn, :user))
     end
   end
 
   defp authenticate(conn, _options) do
-    if conn.assigns.current_user do
+    if conn.assigns.user do
       conn
     else
       conn

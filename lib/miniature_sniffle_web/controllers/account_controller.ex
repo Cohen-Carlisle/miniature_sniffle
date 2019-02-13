@@ -3,13 +3,13 @@ defmodule MiniatureSniffleWeb.AccountController do
   alias MiniatureSniffle.Account
 
   def index(conn, _params) do
-    case conn.assigns.current_user do
+    case conn.assigns.user do
       nil ->
         render(conn, "index.html")
 
-      current_user ->
+      user ->
         conn
-        |> put_flash(:info, "Already logged in as #{current_user}.")
+        |> put_flash(:info, "Already logged in as #{user.name}.")
         |> redirect(to: Routes.order_path(conn, :new))
     end
   end
@@ -18,7 +18,7 @@ defmodule MiniatureSniffleWeb.AccountController do
     case Account.get_pharmacy(pharmacy_name) do
       {:ok, pharmacy} ->
         conn
-        |> put_session(:current_user, pharmacy.name)
+        |> put_session(:user, %{name: pharmacy.name, id: pharmacy.id})
         |> put_flash(:info, "Welcome to MiniatureSniffle, #{pharmacy.name}.")
         |> redirect(to: Routes.order_path(conn, :new))
 

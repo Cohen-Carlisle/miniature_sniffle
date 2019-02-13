@@ -5,7 +5,7 @@ defmodule MiniatureSniffle.Requisition do
 
   import Ecto.Query, warn: false
   alias MiniatureSniffle.Repo
-  alias MiniatureSniffle.Requisition.Order
+  alias MiniatureSniffle.Requisition.{Location, Order, Patient, Prescription}
 
   @doc """
   Creates a order.
@@ -23,5 +23,45 @@ defmodule MiniatureSniffle.Requisition do
     %Order{}
     |> Order.changeset(attrs)
     |> Repo.insert()
+  end
+
+  def order_select_options(pharmacy_id) do
+    # shouldn't just grab all patients (hipaa lol), but they aren't currently associated to a pharmcy
+    %{
+      locations: Location |> where(pharmacy_id: ^pharmacy_id) |> Repo.all() |> to_select_opts(),
+      patients: Patient |> Repo.all() |> to_select_opts(),
+      prescriptions: Prescription |> Repo.all() |> to_select_opts()
+    }
+  end
+
+  def check_user_location_assoc(pharmacy_id, location_id) do
+    check =
+      Location
+      |> where(pharmacy_id: ^pharmacy_id, id: ^location_id)
+      |> Repo.exists?()
+
+    (check && :ok) || {:error, :user_and_location_not_associated}
+  end
+
+  defp to_select_opts([]) do
+    [{"No existing data.", nil}]
+  end
+
+  defp to_select_opts([%Location{} | _] = list) do
+    list
+    |> Enum.map(&{"#{&1.latitude}, #{&1.longitude}", &1.id})
+    |> List.insert_at(0, {"Choose an existing location...", nil})
+  end
+
+  defp to_select_opts([%Patient{} | _] = list) do
+    list
+    |> Enum.map(&{"#{&1.last_name}, #{&1.first_name}", &1.id})
+    |> List.insert_at(0, {"Choose an existing patient...", nil})
+  end
+
+  defp to_select_opts([%Prescription{} | _] = list) do
+    list
+    |> Enum.map(&{&1.name, &1.id})
+    |> List.insert_at(0, {"Choose an existing prescription...", nil})
   end
 end

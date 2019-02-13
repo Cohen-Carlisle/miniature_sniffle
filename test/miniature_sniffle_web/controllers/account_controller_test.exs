@@ -11,7 +11,7 @@ defmodule MiniatureSniffleWeb.AccountControllerTest do
     test "while already logged in, redirects to order creation", %{conn: conn} do
       resp_conn =
         conn
-        |> assign(:current_user, "test user")
+        |> assign(:user, %{id: 1, name: "test user"})
         |> get("/comeonin")
 
       assert html_response(resp_conn, 302)
@@ -31,14 +31,14 @@ defmodule MiniatureSniffleWeb.AccountControllerTest do
     test "with valid credentials, logs in the user", %{conn: conn} do
       resp_conn = post(conn, "/comeonin", %{pharmacy_name: "some pharmacy"})
       assert html_response(resp_conn, 302)
-      assert get_session(resp_conn, :current_user) == "some pharmacy"
+      assert %{id: _, name: "some pharmacy"} = get_session(resp_conn, :user)
       assert get_resp_header(resp_conn, "location") == ["/user/create_order"]
     end
 
     test "with invalid credentials, returns to login page", %{conn: conn} do
       resp_conn = post(conn, "/comeonin", %{pharmacy_name: "not a pharmacy"})
       assert html_response(resp_conn, 302)
-      assert get_session(resp_conn, :current_user) == nil
+      assert get_session(resp_conn, :user) == nil
       assert get_resp_header(resp_conn, "location") == ["/comeonin"]
     end
   end
@@ -50,7 +50,7 @@ defmodule MiniatureSniffleWeb.AccountControllerTest do
       |> get("/logout")
 
     assert html_response(resp_conn, 302)
-    assert get_session(resp_conn, :current_user) == nil
+    assert get_session(resp_conn, :user) == nil
     assert get_resp_header(resp_conn, "location") == ["/comeonin"]
   end
 

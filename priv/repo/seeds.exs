@@ -10,8 +10,7 @@
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
 
-alias MiniatureSniffle.Repo
-alias MiniatureSniffle.{Account, Requisition}
+alias MiniatureSniffle.{Account, Repo, Requisition}
 
 pharmacy1 =
   %Account.Pharmacy{}
