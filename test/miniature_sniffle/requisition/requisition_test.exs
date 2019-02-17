@@ -162,4 +162,27 @@ defmodule MiniatureSniffle.RequisitionTest do
                Requisition.order_select_options(context.pharmacy_id).patients
     end
   end
+
+  describe "locations" do
+    alias MiniatureSniffle.Requisition.Location
+
+    setup do
+      pharmacy =
+        %Account.Pharmacy{}
+        |> Account.Pharmacy.changeset(%{name: "Valid Pharmacy"})
+        |> Repo.insert!()
+
+      %{pharmacy_id: pharmacy.id}
+    end
+
+    test "report unique index violation under the :latitude key", %{pharmacy_id: pharmacy_id} do
+      location_cs =
+        Location.changeset(%Location{}, %{latitude: "1", longitude: "1", pharmacy_id: pharmacy_id})
+
+      Repo.insert!(location_cs)
+
+      assert {:error, %{errors: [latitude: {"and longitude have already been taken", _}]}} =
+               Repo.insert(location_cs)
+    end
+  end
 end
