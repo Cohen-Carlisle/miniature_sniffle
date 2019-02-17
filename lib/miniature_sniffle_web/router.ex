@@ -15,6 +15,8 @@ defmodule MiniatureSniffleWeb.Router do
 
     get "/create_order", OrderController, :new
     post "/create_order", OrderController, :create
+    get "/create_order2", OrderController, :new2
+    post "/create_order2", OrderController, :create2
   end
 
   scope "/", MiniatureSniffleWeb do

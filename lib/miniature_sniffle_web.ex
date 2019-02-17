@@ -24,6 +24,9 @@ defmodule MiniatureSniffleWeb do
       import Plug.Conn
       import MiniatureSniffleWeb.Gettext
       alias MiniatureSniffleWeb.Router.Helpers, as: Routes
+
+      # our stuff
+      import MiniatureSniffleWeb.ControllerHelper
     end
   end
 
