@@ -106,9 +106,9 @@ defmodule MiniatureSniffle.RequisitionTest do
       assert {:ok, order} =
                Requisition.create_order2(
                  %{
-                   "location_id" => context.location_id,
-                   "patient_id" => context.patient_id,
-                   "prescription_id" => context.prescription_id
+                   location: %{id: context.location_id},
+                   patient: %{id: context.patient_id},
+                   prescription: %{id: context.prescription_id}
                  },
                  context.pharmacy_id
                )
@@ -122,9 +122,9 @@ defmodule MiniatureSniffle.RequisitionTest do
       assert {:error, [location: {"does not exist", _}]} =
                Requisition.create_order2(
                  %{
-                   "location_id" => context.location_id + 9000,
-                   "patient_id" => context.patient_id,
-                   "prescription_id" => context.prescription_id
+                   location: %{id: context.location_id + 9000},
+                   patient: %{id: context.patient_id},
+                   prescription: %{id: context.prescription_id}
                  },
                  context.pharmacy_id
                )
@@ -136,9 +136,9 @@ defmodule MiniatureSniffle.RequisitionTest do
       assert {:error, [location: {"not associated to pharmacy", _}]} =
                Requisition.create_order2(
                  %{
-                   "location_id" => context.other_location_id,
-                   "patient_id" => context.patient_id,
-                   "prescription_id" => context.prescription_id
+                   location: %{id: context.other_location_id},
+                   patient: %{id: context.patient_id},
+                   prescription: %{id: context.prescription_id}
                  },
                  context.pharmacy_id
                )
@@ -155,9 +155,9 @@ defmodule MiniatureSniffle.RequisitionTest do
       assert {:ok, order} =
                Requisition.create_order2(
                  %{
-                   "location" => %{"latitude" => "3", "longitude" => "3"},
-                   "patient" => %{"first_name" => "Stephanie", "last_name" => "Carlisle"},
-                   "prescription" => %{"name" => "Melange"}
+                   location: %{latitude: "3", longitude: "3"},
+                   patient: %{first_name: "Stephanie", last_name: "Carlisle"},
+                   prescription: %{name: "Melange"}
                  },
                  context.pharmacy_id
                )
@@ -173,9 +173,9 @@ defmodule MiniatureSniffle.RequisitionTest do
       assert {:error, _} =
                Requisition.create_order2(
                  %{
-                   "location" => %{"latitude" => "3", "longitude" => "3"},
-                   "patient" => %{"first_name" => "Stephanie", "last_name" => "Carlisle"},
-                   "prescription" => %{"name" => ""}
+                   location: %{latitude: "3", longitude: "3"},
+                   patient: %{first_name: "Stephanie", last_name: "Carlisle"},
+                   prescription: %{name: ""}
                  },
                  context.pharmacy_id
                )
