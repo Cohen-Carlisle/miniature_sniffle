@@ -12,21 +12,20 @@
 
 alias MiniatureSniffle.{Account, Repo, Requisition}
 
-pharmacy1 =
+pharmacy =
   %Account.Pharmacy{}
   |> Account.Pharmacy.changeset(%{name: "Alfa Pharmacy"})
   |> Repo.insert!()
 
-pharmacy2 =
-  %Account.Pharmacy{}
-  |> Account.Pharmacy.changeset(%{name: "Bravo Pharmacy"})
-  |> Repo.insert!()
+%Account.Pharmacy{}
+|> Account.Pharmacy.changeset(%{name: "Bravo Pharmacy"})
+|> Repo.insert!()
 
 %Requisition.Location{}
 |> Requisition.Location.changeset(%{
   latitude: "39.9612",
   longitude: "82.9988",
-  pharmacy_id: pharmacy1.id
+  pharmacy_id: pharmacy.id
 })
 |> Repo.insert!()
 
@@ -34,7 +33,7 @@ pharmacy2 =
 |> Requisition.Location.changeset(%{
   latitude: "40.9612",
   longitude: "72.9988",
-  pharmacy_id: pharmacy2.id
+  pharmacy_id: pharmacy.id
 })
 |> Repo.insert!()
 
