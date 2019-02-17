@@ -79,27 +79,75 @@ defmodule MiniatureSniffleWeb.OrderControllerTest do
       assert html_response(resp_conn, 200) =~ "something went wrong"
       assert Repo.aggregate(Requisition.Order, :count, :id) == 0
     end
-  end
 
-  defp valid_existing_params(context) do
-    %{
-      "order" => %{
-        "location_id" => context.location_id,
-        "patient_id" => context.patient_id,
-        "prescription_id" => context.prescription_id
+    test "creates an order and new associated valid data", %{conn: conn} do
+      assert Repo.aggregate(Requisition.Order, :count, :id) == 0
+      assert Repo.get_by(Requisition.Location, latitude: "3") == nil
+      assert Repo.get_by(Requisition.Patient, first_name: "Stephanie") == nil
+      assert Repo.get_by(Requisition.Prescription, name: "Melange") == nil
+
+      resp_conn = post(conn, "/user/create_order", valid_new_params())
+      assert html_response(resp_conn, 302)
+      assert get_resp_header(resp_conn, "location") == ["/user/create_order"]
+
+      assert Repo.aggregate(Requisition.Order, :count, :id) == 1
+      assert %Requisition.Location{} = Repo.get_by(Requisition.Location, latitude: "3")
+      assert %Requisition.Patient{} = Repo.get_by(Requisition.Patient, first_name: "Stephanie")
+      assert %Requisition.Prescription{} = Repo.get_by(Requisition.Prescription, name: "Melange")
+    end
+
+    test "does not create an order nor associated data if any data is invalid", %{conn: conn} do
+      location_precount = Repo.aggregate(Requisition.Location, :count, :id)
+      patient_precount = Repo.aggregate(Requisition.Patient, :count, :id)
+      prescription_precount = Repo.aggregate(Requisition.Prescription, :count, :id)
+
+      resp_conn = post(conn, "/user/create_order", invalid_new_params())
+      assert html_response(resp_conn, 200) =~ "something went wrong"
+
+      assert Repo.aggregate(Requisition.Order, :count, :id) == 0
+      assert Repo.aggregate(Requisition.Location, :count, :id) == location_precount
+      assert Repo.aggregate(Requisition.Patient, :count, :id) == patient_precount
+      assert Repo.aggregate(Requisition.Prescription, :count, :id) == prescription_precount
+    end
+
+    defp valid_existing_params(context) do
+      %{
+        "order" => %{
+          "location_id" => context.location_id,
+          "patient_id" => context.patient_id,
+          "prescription_id" => context.prescription_id
+        }
       }
-    }
-  end
+    end
 
-  defp user_location_mismatch_params(context) do
-    context
-    |> valid_existing_params()
-    |> put_in(["order", "location_id"], context.other_location_id)
-  end
+    defp user_location_mismatch_params(context) do
+      context
+      |> valid_existing_params()
+      |> put_in(["order", "location_id"], context.other_location_id)
+    end
 
-  defp invalid_existing_params(context) do
-    context
-    |> valid_existing_params()
-    |> update_in(["order", "prescription_id"], &(&1 + 9000))
+    defp invalid_existing_params(context) do
+      context
+      |> valid_existing_params()
+      |> update_in(["order", "prescription_id"], &(&1 + 9000))
+    end
+
+    defp valid_new_params do
+      # as you can see, its all bundled up together without namespacing
+      # but we get error_tag in the templates for free this way
+      %{
+        "order" => %{
+          "latitude" => "3",
+          "longitude" => "3",
+          "first_name" => "Stephanie",
+          "last_name" => "Carlisle",
+          "name" => "Melange"
+        }
+      }
+    end
+
+    defp invalid_new_params do
+      put_in(valid_new_params(), ["order", "name"], "")
+    end
   end
 end

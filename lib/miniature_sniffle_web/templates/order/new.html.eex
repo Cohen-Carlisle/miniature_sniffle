@@ -1,17 +1,61 @@
 <h1>Create Order</h1>
+<% # TODO show either select list or text inputs, not both %>
 <%= form_for @conn, Routes.order_path(@conn, :create), [errors: @conn.assigns[:errors] || [], as: :order], fn f -> %>
-  <%= label(f, :location_id, "Location") %>
-  <%= error_tag f, :location %>
-  <%= error_tag f, :location_id %>
-  <%= select(f, :location_id, @select_options.locations, required: true) %>
-  <%= label(f, :patient_id, "Patient") %>
-  <%= error_tag f, :patient %>
-  <%= error_tag f, :patient_id %>
-  <%= select(f, :patient_id, @select_options.patients, required: true) %>
-  <%= label(f, :prescription_id, "Prescription") %>
-  <%= error_tag f, :prescription %>
-  <%= error_tag f, :prescription_id %>
-  <%= select(f, :prescription_id, @select_options.prescriptions, required: true) %>
-  <br/>
+  <section>
+    <h2>Location</h2>
+    <div id="location-existing">
+      <%= label(f, :location_id, "Existing locations") %>
+      <%= error_tag f, :location %>
+      <%= error_tag f, :location_id %>
+      <%= select(f, :location_id, @select_options.locations) %>
+      <br><p><%= or_create_new(:location, @select_options.locations) %></p>
+    </div>
+    <div id="location-new">
+      <%= label(f, :latitude) %>
+      <%= error_tag f, :latitude %>
+      <%= text_input(f, :latitude) %>
+
+      <%= label(f, :longitude) %>
+      <%= error_tag f, :longitude %>
+      <%= text_input(f, :longitude) %>
+    </div>
+  </section>
+  <br>
+  <section>
+    <h2>Patient</h2>
+    <div id="patient-existing">
+      <%= label(f, :patient_id, "Existing patients") %>
+      <%= error_tag f, :patient %>
+      <%= error_tag f, :patient_id %>
+      <%= select(f, :patient_id, @select_options.patients) %>
+      <br><p><%= or_create_new(:patient, @select_options.patients) %></p>
+    </div>
+    <div id="patient-new">
+      <%= label(f, :first_name) %>
+      <%= error_tag f, :first_name %>
+      <%= text_input(f, :first_name) %>
+
+      <%= label(f, :last_name) %>
+      <%= error_tag f, :last_name %>
+      <%= text_input(f, :last_name) %>
+    </div>
+  </section>
+  <br>
+  <section>
+    <h2>Prescription</h2>
+    <div id="prescription-existing">
+      <%= label(f, :prescription_id, "Existing prescriptions") %>
+      <%= error_tag f, :prescription %>
+      <%= error_tag f, :prescription_id %>
+      <%= select(f, :prescription_id, @select_options.prescriptions) %>
+      <br><p><%= or_create_new(:prescription, @select_options.prescriptions) %></p>
+    </div>
+    <div id="prescription-new">
+      <%= label(f, :name) %>
+      <%= error_tag f, :name %>
+      <%= text_input(f, :name) %>
+    </div>
+  </section>
+  <br>
   <%= submit("Submit") %>
 <% end %>

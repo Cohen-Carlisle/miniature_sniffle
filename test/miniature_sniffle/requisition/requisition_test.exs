@@ -54,7 +54,7 @@ defmodule MiniatureSniffle.RequisitionTest do
     end
 
     test "create_order/2 persists an order from valid pre-existing data", context do
-      assert Repo.aggregate(Requisition.Order, :count, :id) == 0
+      assert Repo.aggregate(Order, :count, :id) == 0
 
       assert {:ok, order} =
                Requisition.create_order(
@@ -70,7 +70,7 @@ defmodule MiniatureSniffle.RequisitionTest do
     end
 
     test "create_order/2 errors on an invalid foreign key", context do
-      assert Repo.aggregate(Requisition.Order, :count, :id) == 0
+      assert Repo.aggregate(Order, :count, :id) == 0
 
       assert {:error, [location: {"does not exist", _}]} =
                Requisition.create_order(
@@ -82,7 +82,7 @@ defmodule MiniatureSniffle.RequisitionTest do
                  context.pharmacy_id
                )
 
-      assert Repo.aggregate(Requisition.Order, :count, :id) == 0
+      assert Repo.aggregate(Order, :count, :id) == 0
     end
 
     test "create_order/2 errors if the user not associated to the location", context do
@@ -96,11 +96,11 @@ defmodule MiniatureSniffle.RequisitionTest do
                  context.pharmacy_id
                )
 
-      assert Repo.aggregate(Requisition.Order, :count, :id) == 0
+      assert Repo.aggregate(Order, :count, :id) == 0
     end
 
     test "create_order/2 persists an order and new associated valid data", context do
-      assert Repo.aggregate(Requisition.Order, :count, :id) == 0
+      assert Repo.aggregate(Order, :count, :id) == 0
       assert Repo.get_by(Requisition.Location, latitude: "3") == nil
       assert Repo.get_by(Requisition.Patient, first_name: "Stephanie") == nil
       assert Repo.get_by(Requisition.Prescription, name: "Melange") == nil
@@ -132,7 +132,7 @@ defmodule MiniatureSniffle.RequisitionTest do
                  context.pharmacy_id
                )
 
-      assert Repo.aggregate(Requisition.Order, :count, :id) == 0
+      assert Repo.aggregate(Order, :count, :id) == 0
       assert Repo.get_by(Requisition.Location, latitude: "3") == nil
       assert Repo.get_by(Requisition.Patient, first_name: "Stephanie") == nil
       assert Repo.get_by(Requisition.Prescription, name: "") == nil
