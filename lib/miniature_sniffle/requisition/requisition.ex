@@ -25,6 +25,21 @@ defmodule MiniatureSniffle.Requisition do
     |> Repo.insert()
   end
 
+  def create_order2(params, user_id) do
+    Repo.transaction(fn ->
+      with {:ok, maybe_location} <- maybe_insert_location(params["location"], user_id),
+           {:ok, maybe_patient} <- maybe_insert_patient(params["patient"]),
+           {:ok, maybe_prescription} <- maybe_insert_prescription(params["prescription"]),
+           {:ok, order} <-
+             insert_order(params, maybe_location, maybe_patient, maybe_prescription),
+           :ok <- check_user_location_assoc2(maybe_location, user_id, order.location_id) do
+        order
+      else
+        {:error, %{errors: errors}} -> Repo.rollback(errors)
+      end
+    end)
+  end
+
   def order_select_options(pharmacy_id) do
     # shouldn't just grab all patients (hipaa lol), but they aren't currently associated to a pharmcy
     %{
@@ -41,6 +56,92 @@ defmodule MiniatureSniffle.Requisition do
       |> Repo.exists?()
 
     (check && :ok) || {:error, :user_and_location_not_associated}
+  end
+
+  defp maybe_insert_location(%{"latitude" => latitude, "longitude" => longitude}, user_id)
+       when byte_size(latitude) > 0 and byte_size(longitude) > 0 do
+    %Location{}
+    |> Location.changeset(%{latitude: latitude, longitude: longitude, pharmacy_id: user_id})
+    |> Repo.insert()
+  end
+
+  defp maybe_insert_location(_params, _user_id) do
+    {:ok, :noop}
+  end
+
+  defp maybe_insert_patient(%{"first_name" => first_name, "last_name" => last_name})
+       when byte_size(first_name) > 0 and byte_size(last_name) > 0 do
+    %Patient{}
+    |> Patient.changeset(%{first_name: first_name, last_name: last_name})
+    |> Repo.insert()
+  end
+
+  defp maybe_insert_patient(_params) do
+    {:ok, :noop}
+  end
+
+  defp maybe_insert_prescription(%{"name" => name})
+       when byte_size(name) > 0 do
+    %Prescription{}
+    |> Prescription.changeset(%{name: name})
+    |> Repo.insert()
+  end
+
+  defp maybe_insert_prescription(_params) do
+    {:ok, :noop}
+  end
+
+  defp insert_order(params, maybe_location, maybe_patient, maybe_prescription) do
+    %Order{}
+    |> Order.changeset(%{
+      location_id: location_id(params, maybe_location),
+      patient_id: patient_id(params, maybe_patient),
+      prescription_id: prescription_id(params, maybe_prescription)
+    })
+    |> Repo.insert()
+  end
+
+  defp location_id(params, :noop) do
+    params["location_id"]
+  end
+
+  defp location_id(_params, location) do
+    location.id
+  end
+
+  defp patient_id(params, :noop) do
+    params["patient_id"]
+  end
+
+  defp patient_id(_params, patient) do
+    patient.id
+  end
+
+  defp prescription_id(params, :noop) do
+    params["prescription_id"]
+  end
+
+  defp prescription_id(_params, prescription) do
+    prescription.id
+  end
+
+  defp check_user_location_assoc2(maybe_location, pharmacy_id, location_id) do
+    # only need to check if we didn't just create the location
+    if maybe_location == :noop do
+      check =
+        Location
+        |> where(pharmacy_id: ^pharmacy_id, id: ^location_id)
+        |> Repo.exists?()
+
+      if check do
+        :ok
+      else
+        # format 2nd tuple element like changeset errors
+        {:error, %{errors: [location: {"not associated to pharmacy", []}]}}
+      end
+    else
+      :ok
+    end
   end
 
   defp to_select_opts([]) do
