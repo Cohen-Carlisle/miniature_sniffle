@@ -53,17 +53,89 @@ defmodule MiniatureSniffle.RequisitionTest do
       }
     end
 
-    test "create_order/1 with valid data creates a order", context do
-      valid_params = Map.take(context, [:location_id, :patient_id, :prescription_id])
+    test "create_order/2 persists an order from valid pre-existing data", context do
+      assert Repo.aggregate(Requisition.Order, :count, :id) == 0
 
-      assert {:ok, %Order{}} = Requisition.create_order(valid_params)
+      assert {:ok, order} =
+               Requisition.create_order(
+                 %{
+                   location: %{id: context.location_id},
+                   patient: %{id: context.patient_id},
+                   prescription: %{id: context.prescription_id}
+                 },
+                 context.pharmacy_id
+               )
+
+      assert %Order{} = Repo.get(Order, order.id)
     end
 
-    test "create_order/1 with invalid data returns error changeset", context do
-      valid_params = Map.take(context, [:location_id, :patient_id, :prescription_id])
-      invalid_params = Enum.into(valid_params, %{}, fn {col, id} -> {col, id + 1} end)
+    test "create_order/2 errors on an invalid foreign key", context do
+      assert Repo.aggregate(Requisition.Order, :count, :id) == 0
 
-      assert {:error, %Ecto.Changeset{}} = Requisition.create_order(invalid_params)
+      assert {:error, [location: {"does not exist", _}]} =
+               Requisition.create_order(
+                 %{
+                   location: %{id: context.location_id + 9000},
+                   patient: %{id: context.patient_id},
+                   prescription: %{id: context.prescription_id}
+                 },
+                 context.pharmacy_id
+               )
+
+      assert Repo.aggregate(Requisition.Order, :count, :id) == 0
+    end
+
+    test "create_order/2 errors if the user not associated to the location", context do
+      assert {:error, [location: {"not associated to pharmacy", _}]} =
+               Requisition.create_order(
+                 %{
+                   location: %{id: context.other_location_id},
+                   patient: %{id: context.patient_id},
+                   prescription: %{id: context.prescription_id}
+                 },
+                 context.pharmacy_id
+               )
+
+      assert Repo.aggregate(Requisition.Order, :count, :id) == 0
+    end
+
+    test "create_order/2 persists an order and new associated valid data", context do
+      assert Repo.aggregate(Requisition.Order, :count, :id) == 0
+      assert Repo.get_by(Requisition.Location, latitude: "3") == nil
+      assert Repo.get_by(Requisition.Patient, first_name: "Stephanie") == nil
+      assert Repo.get_by(Requisition.Prescription, name: "Melange") == nil
+
+      assert {:ok, order} =
+               Requisition.create_order(
+                 %{
+                   location: %{latitude: "3", longitude: "3"},
+                   patient: %{first_name: "Stephanie", last_name: "Carlisle"},
+                   prescription: %{name: "Melange"}
+                 },
+                 context.pharmacy_id
+               )
+
+      assert %Order{} = Repo.get(Order, order.id)
+      assert Repo.get(Requisition.Location, order.location_id).latitude == "3"
+      assert Repo.get(Requisition.Patient, order.patient_id).first_name == "Stephanie"
+      assert Repo.get(Requisition.Prescription, order.prescription_id).name == "Melange"
+    end
+
+    test "create_order/2 does not create any records if any data is invalid", context do
+      assert {:error, [name: {"can't be blank", _}]} =
+               Requisition.create_order(
+                 %{
+                   location: %{latitude: "3", longitude: "3"},
+                   patient: %{first_name: "Stephanie", last_name: "Carlisle"},
+                   prescription: %{name: ""}
+                 },
+                 context.pharmacy_id
+               )
+
+      assert Repo.aggregate(Requisition.Order, :count, :id) == 0
+      assert Repo.get_by(Requisition.Location, latitude: "3") == nil
+      assert Repo.get_by(Requisition.Patient, first_name: "Stephanie") == nil
+      assert Repo.get_by(Requisition.Prescription, name: "") == nil
     end
 
     test "order_select_options/1 returns a map of select options for use in views", context do
@@ -88,102 +160,6 @@ defmodule MiniatureSniffle.RequisitionTest do
 
       assert [{"No existing data.", nil}] ==
                Requisition.order_select_options(context.pharmacy_id).patients
-    end
-
-    test "check_user_location_assoc/2 returns :ok if user and location associated", context do
-      assert :ok ==
-               Requisition.check_user_location_assoc(context.pharmacy_id, context.location_id)
-    end
-
-    test "check_user_location_assoc/2 errors if user and location not associated", context do
-      assert {:error, :user_and_location_not_associated} ==
-               Requisition.check_user_location_assoc(context.pharmacy_id, context.location_id + 1)
-    end
-
-    test "create_order2/2 persists an order from valid pre-existing data", context do
-      assert Repo.aggregate(Requisition.Order, :count, :id) == 0
-
-      assert {:ok, order} =
-               Requisition.create_order2(
-                 %{
-                   location: %{id: context.location_id},
-                   patient: %{id: context.patient_id},
-                   prescription: %{id: context.prescription_id}
-                 },
-                 context.pharmacy_id
-               )
-
-      assert %Order{} = Repo.get(Order, order.id)
-    end
-
-    test "create_order2/2 errors on an invalid foreign key", context do
-      assert Repo.aggregate(Requisition.Order, :count, :id) == 0
-
-      assert {:error, [location: {"does not exist", _}]} =
-               Requisition.create_order2(
-                 %{
-                   location: %{id: context.location_id + 9000},
-                   patient: %{id: context.patient_id},
-                   prescription: %{id: context.prescription_id}
-                 },
-                 context.pharmacy_id
-               )
-
-      assert Repo.aggregate(Requisition.Order, :count, :id) == 0
-    end
-
-    test "create_order2/2 errors if the user not associated to the location", context do
-      assert {:error, [location: {"not associated to pharmacy", _}]} =
-               Requisition.create_order2(
-                 %{
-                   location: %{id: context.other_location_id},
-                   patient: %{id: context.patient_id},
-                   prescription: %{id: context.prescription_id}
-                 },
-                 context.pharmacy_id
-               )
-
-      assert Repo.aggregate(Requisition.Order, :count, :id) == 0
-    end
-
-    test "create_order2/2 persists an order and new associated valid data", context do
-      assert Repo.aggregate(Requisition.Order, :count, :id) == 0
-      assert Repo.get_by(Requisition.Location, latitude: "3") == nil
-      assert Repo.get_by(Requisition.Patient, first_name: "Stephanie") == nil
-      assert Repo.get_by(Requisition.Prescription, name: "Melange") == nil
-
-      assert {:ok, order} =
-               Requisition.create_order2(
-                 %{
-                   location: %{latitude: "3", longitude: "3"},
-                   patient: %{first_name: "Stephanie", last_name: "Carlisle"},
-                   prescription: %{name: "Melange"}
-                 },
-                 context.pharmacy_id
-               )
-
-      assert %Order{} = Repo.get(Order, order.id)
-      assert Repo.get(Requisition.Location, order.location_id).latitude == "3"
-      assert Repo.get(Requisition.Patient, order.patient_id).first_name == "Stephanie"
-      assert Repo.get(Requisition.Prescription, order.prescription_id).name == "Melange"
-    end
-
-    test "create_order2/2 does not create any records if any data is invalid", context do
-      # update if location string format checks implemented
-      assert {:error, _} =
-               Requisition.create_order2(
-                 %{
-                   location: %{latitude: "3", longitude: "3"},
-                   patient: %{first_name: "Stephanie", last_name: "Carlisle"},
-                   prescription: %{name: ""}
-                 },
-                 context.pharmacy_id
-               )
-
-      assert Repo.aggregate(Requisition.Order, :count, :id) == 0
-      assert Repo.get_by(Requisition.Location, latitude: "3") == nil
-      assert Repo.get_by(Requisition.Patient, first_name: "Stephanie") == nil
-      assert Repo.get_by(Requisition.Prescription, name: "") == nil
     end
   end
 end

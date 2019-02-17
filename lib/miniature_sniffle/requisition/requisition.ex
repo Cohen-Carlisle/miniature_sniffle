@@ -7,32 +7,14 @@ defmodule MiniatureSniffle.Requisition do
   alias MiniatureSniffle.Repo
   alias MiniatureSniffle.Requisition.{Location, Order, Patient, Prescription}
 
-  @doc """
-  Creates a order.
-
-  ## Examples
-
-      iex> create_order(%{field: value})
-      {:ok, %Order{}}
-
-      iex> create_order(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_order(attrs \\ %{}) do
-    %Order{}
-    |> Order.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  def create_order2(params, user_id) do
+  def create_order(params, user_id) do
     Repo.transaction(fn ->
       with {:ok, maybe_location} <- maybe_insert_location(params.location, user_id),
            {:ok, maybe_patient} <- maybe_insert_patient(params.patient),
            {:ok, maybe_prescription} <- maybe_insert_prescription(params.prescription),
            {:ok, order} <-
              insert_order(params, maybe_location, maybe_patient, maybe_prescription),
-           :ok <- check_user_location_assoc2(maybe_location, user_id, order.location_id) do
+           :ok <- check_user_location_assoc(maybe_location, user_id, order.location_id) do
         order
       else
         {:error, %{errors: errors}} -> Repo.rollback(errors)
@@ -47,15 +29,6 @@ defmodule MiniatureSniffle.Requisition do
       patients: Patient |> Repo.all() |> to_select_opts(),
       prescriptions: Prescription |> Repo.all() |> to_select_opts()
     }
-  end
-
-  def check_user_location_assoc(pharmacy_id, location_id) do
-    check =
-      Location
-      |> where(pharmacy_id: ^pharmacy_id, id: ^location_id)
-      |> Repo.exists?()
-
-    (check && :ok) || {:error, :user_and_location_not_associated}
   end
 
   defp maybe_insert_location(%{id: _id}, _user_id) do
@@ -107,7 +80,7 @@ defmodule MiniatureSniffle.Requisition do
   defp prescription_id(%{id: id}, :noop), do: id
   defp prescription_id(_params, %{id: id}), do: id
 
-  defp check_user_location_assoc2(maybe_location, pharmacy_id, location_id) do
+  defp check_user_location_assoc(maybe_location, pharmacy_id, location_id) do
     # only need to check if we didn't just create the location
     if maybe_location == :noop do
       check =
