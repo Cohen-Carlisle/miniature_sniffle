@@ -1,5 +1,11 @@
 <h1>Create Order</h1>
-<% # TODO show either select list or text inputs, not both %>
+<%
+  # TODO show either select list or text inputs, not both
+
+  # TODO update per http://blog.plataformatec.com.br/2015/08/working-with-ecto-associations-and-embeds/
+  # but for now there is some fun code resulting from manually managing the
+  # associations that we probably don't want to actually maintain long term
+%>
 <%= form_for @conn, Routes.order_path(@conn, :create), [errors: @conn.assigns[:errors] || [], as: :order], fn f -> %>
   <section>
     <h2>Location</h2>

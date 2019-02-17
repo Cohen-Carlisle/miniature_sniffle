@@ -12,6 +12,9 @@ defmodule MiniatureSniffle.Requisition.Order do
 
   @doc false
   def changeset(order, attrs) do
+    # ecto says not to use validate_required/2 for fkeys, but cast_assoc/3
+    # requires the corresponding struct, not just the fkey, which is annoying.
+    # still, it's probably worth using cast_assoc/3. see also fkey in Location.
     order
     |> cast(attrs, [:location_id, :patient_id, :prescription_id])
     |> validate_required([:location_id, :patient_id, :prescription_id])
