@@ -57,44 +57,26 @@ defmodule MiniatureSniffle.RequisitionTest do
       assert Repo.aggregate(Order, :count, :id) == 0
 
       assert {:ok, order} =
+               Requisition.create_order(valid_existing_params(context), context.pharmacy_id)
+
+      assert %Order{} = Repo.get(Order, order.id)
+    end
+
+    test "create_order/2 errors if the user not associated to the location", context do
+      assert {:error, [location: {"not associated to pharmacy", _}]} =
                Requisition.create_order(
-                 %{
-                   location: %{id: context.location_id},
-                   patient: %{id: context.patient_id},
-                   prescription: %{id: context.prescription_id}
-                 },
+                 user_location_mismatch_params(context),
                  context.pharmacy_id
                )
 
-      assert %Order{} = Repo.get(Order, order.id)
+      assert Repo.aggregate(Order, :count, :id) == 0
     end
 
     test "create_order/2 errors on an invalid foreign key", context do
       assert Repo.aggregate(Order, :count, :id) == 0
 
       assert {:error, [location: {"does not exist", _}]} =
-               Requisition.create_order(
-                 %{
-                   location: %{id: context.location_id + 9000},
-                   patient: %{id: context.patient_id},
-                   prescription: %{id: context.prescription_id}
-                 },
-                 context.pharmacy_id
-               )
-
-      assert Repo.aggregate(Order, :count, :id) == 0
-    end
-
-    test "create_order/2 errors if the user not associated to the location", context do
-      assert {:error, [location: {"not associated to pharmacy", _}]} =
-               Requisition.create_order(
-                 %{
-                   location: %{id: context.other_location_id},
-                   patient: %{id: context.patient_id},
-                   prescription: %{id: context.prescription_id}
-                 },
-                 context.pharmacy_id
-               )
+               Requisition.create_order(invalid_existing_params(context), context.pharmacy_id)
 
       assert Repo.aggregate(Order, :count, :id) == 0
     end
@@ -105,15 +87,7 @@ defmodule MiniatureSniffle.RequisitionTest do
       assert Repo.get_by(Requisition.Patient, first_name: "Stephanie") == nil
       assert Repo.get_by(Requisition.Prescription, name: "Melange") == nil
 
-      assert {:ok, order} =
-               Requisition.create_order(
-                 %{
-                   location: %{latitude: "3", longitude: "3"},
-                   patient: %{first_name: "Stephanie", last_name: "Carlisle"},
-                   prescription: %{name: "Melange"}
-                 },
-                 context.pharmacy_id
-               )
+      assert {:ok, order} = Requisition.create_order(valid_new_params(), context.pharmacy_id)
 
       assert %Order{} = Repo.get(Order, order.id)
       assert Repo.get(Requisition.Location, order.location_id).latitude == "3"
@@ -123,19 +97,32 @@ defmodule MiniatureSniffle.RequisitionTest do
 
     test "create_order/2 does not create any records if any data is invalid", context do
       assert {:error, [name: {"can't be blank", _}]} =
-               Requisition.create_order(
-                 %{
-                   location: %{latitude: "3", longitude: "3"},
-                   patient: %{first_name: "Stephanie", last_name: "Carlisle"},
-                   prescription: %{name: ""}
-                 },
-                 context.pharmacy_id
-               )
+               Requisition.create_order(invalid_new_params(), context.pharmacy_id)
 
       assert Repo.aggregate(Order, :count, :id) == 0
       assert Repo.get_by(Requisition.Location, latitude: "3") == nil
       assert Repo.get_by(Requisition.Patient, first_name: "Stephanie") == nil
       assert Repo.get_by(Requisition.Prescription, name: "") == nil
+    end
+
+    test "create_order/2 uses existing fkeys over new data if both are present", context do
+      location_precount = Repo.aggregate(Requisition.Location, :count, :id)
+      patient_precount = Repo.aggregate(Requisition.Patient, :count, :id)
+      prescription_precount = Repo.aggregate(Requisition.Prescription, :count, :id)
+
+      assert {:ok, order} =
+               Requisition.create_order(
+                 valid_existing_and_new_params(context),
+                 context.pharmacy_id
+               )
+
+      assert Repo.aggregate(Requisition.Location, :count, :id) == location_precount
+      assert Repo.aggregate(Requisition.Patient, :count, :id) == patient_precount
+      assert Repo.aggregate(Requisition.Prescription, :count, :id) == prescription_precount
+      # test each because: cannot invoke remote function context.location_id/0 inside a match
+      assert order.location_id == context.location_id
+      assert order.patient_id == context.patient_id
+      assert order.prescription_id == context.prescription_id
     end
 
     test "order_select_options/1 returns a map of select options for use in views", context do
@@ -160,6 +147,44 @@ defmodule MiniatureSniffle.RequisitionTest do
 
       assert [{"No existing data.", nil}] ==
                Requisition.order_select_options(context.pharmacy_id).patients
+    end
+
+    defp valid_existing_params(context) do
+      %{
+        location: %{id: context.location_id},
+        patient: %{id: context.patient_id},
+        prescription: %{id: context.prescription_id}
+      }
+    end
+
+    defp user_location_mismatch_params(context) do
+      context
+      |> valid_existing_params()
+      |> put_in([:location, :id], context.other_location_id)
+    end
+
+    defp invalid_existing_params(context) do
+      context
+      |> valid_existing_params()
+      |> update_in([:location, :id], &(&1 + 9000))
+    end
+
+    defp valid_new_params do
+      %{
+        location: %{latitude: "3", longitude: "3"},
+        patient: %{first_name: "Stephanie", last_name: "Carlisle"},
+        prescription: %{name: "Melange"}
+      }
+    end
+
+    defp invalid_new_params do
+      put_in(valid_new_params(), [:prescription, :name], "")
+    end
+
+    defp valid_existing_and_new_params(context) do
+      Map.merge(valid_existing_params(context), valid_new_params(), fn _key, val1, val2 ->
+        Map.merge(val1, val2)
+      end)
     end
   end
 

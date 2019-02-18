@@ -7,6 +7,20 @@ defmodule MiniatureSniffle.Requisition do
   alias MiniatureSniffle.Repo
   alias MiniatureSniffle.Requisition.{Location, Order, Patient, Prescription}
 
+  @doc """
+  Creates an order, creating associated data structures if necessary.
+  Returns {:ok, order} or {:error, errors}.
+  May throw an exception from the database adapter.
+
+  ## Examples
+
+      iex> create_order(%{location: %{id: 1}, patient: %{id: 2}, prescription: %{name: "Rx"}}, 4)
+      {:ok, %Order{location_id: 1, patient_id: 2, prescription_id: 3}}
+
+      iex> create_order(%{location: %{id: 1}, patient: %{id: 2}, prescription: %{}}, 4)
+      {:error, [name: {"can't be blank", [validation: :required]}]}
+
+  """
   def create_order(params, user_id) do
     Repo.transaction(fn ->
       with {:ok, maybe_location} <- maybe_insert_location(params.location, user_id),
@@ -22,6 +36,21 @@ defmodule MiniatureSniffle.Requisition do
     end)
   end
 
+  @doc """
+  Creates a list select options for use in views for a given pharmacy (by id).
+  Returns map with keys :locations, :patients, :prescriptions with values in a
+  format consumed by Phoenix.HTML.select/4, e.g., [{"label1", "value1"}, ...].
+  A "prompt" is built in as the first element in each value.
+
+  ## Examples
+
+      iex> order_select_options(1).prescriptions
+      [{"Choose an existing prescription...", nil}, {"Allegra", 1}, {"Rolaids", 2}]
+
+      iex> order_select_options(2).locations
+      [{"No existing data.", nil}]
+
+  """
   def order_select_options(pharmacy_id) do
     # shouldn't just grab all patients (hipaa lol), but they aren't currently associated to a pharmcy
     %{
